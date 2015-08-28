@@ -5,7 +5,7 @@
  *
  * @author     Rudy Affandi <rudy@adnetinc.com>
  * @copyright  2015
- * @link       http://github.com/lesaff/statamic-data_uri
+ * @link       https://github.com/lesaff/statamic-data_uri
  * @license    MIT
  *
  */
@@ -13,38 +13,22 @@ class Plugin_data_uri extends Plugin
 {
     var $meta = array(
         'name'       => 'Statamic Data URI Plugin',
-        'version'    => '1.0.0',
+        'version'    => '1.0.1',
         'author'     => 'Rudy Affandi',
-        'author_url' => 'http://github.com/lesaff'
+        'author_url' => 'https://github.com/lesaff'
     );
 
     public function index()
     {
-        // parse the content just in case
-        $content    = Parse::contextualTemplate(trim($this->content), array(), $this->context);
-        $file_path  = Path::assemble(BASE_PATH, $content);
+        // Fetch parameter
+        // Note: Data URI adds 33% from the original
+        // file size. 21440 bytes = 67% of 32000 bytes
+        $max_file_size = $this->fetchParam('max_file_size', 21440, null, false, false);
 
-        // Get file meta
-        $finfo      = finfo_open(FILEINFO_MIME_TYPE);
-        $file_mime  = finfo_file($finfo, $file_path);
+        // Fetch data from template
+        $value = Parse::contextualTemplate(trim($this->content), array(), $this->context);
 
-        // Check file size, can't exceed browser limitation
-        // Set hard limit, 32kb based on IE limitation
-        $hard_limit = 21440;
-
-        // Get file size of input
-        $size       = filesize($file_path);
-        if ($size < $hard_limit)
-        {
-            // Base64 it
-            $result = base64_encode(File::get($file_path));
-
-            // Assemble Base64 URL
-            $output = 'data:' . $file_mime . ';base64,' . $result;
-            return $output;
-        } else {
-            // Return original value
-            return $content;
-        }
+        // Encode to Base64
+        return $this->tasks->encodeDataURI($value, $max_file_size);
     }
 }
