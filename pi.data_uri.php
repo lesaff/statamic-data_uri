@@ -34,8 +34,7 @@ class Plugin_data_uri extends Plugin
 
         // Get file size of input
         $size       = filesize($file_path);
-
-        if ($size  <= $hard_limit)
+        if ($size < $hard_limit)
         {
             // Base64 it
             $result = base64_encode(File::get($file_path));
@@ -45,7 +44,7 @@ class Plugin_data_uri extends Plugin
             return $output;
         } else {
             // Return original value
-            return $value;
+            return $content;
         }
     }
 }

@@ -32,13 +32,14 @@ class Modifier_data_uri extends Modifier
         // Get file size of input
         $size       = filesize($file_path);
 
-        if ($size  <= $hard_limit)
+        if ($size  < $hard_limit)
         {
             // Base64 it
             $result = base64_encode(File::get($file_path));
 
             // Assemble Base64 URL
             $output = 'data:' . $file_mime . ';base64,' . $result;
+            dd($output);
             return $output;
         } else {
             // Return original value
