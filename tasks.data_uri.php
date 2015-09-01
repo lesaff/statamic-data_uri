@@ -11,70 +11,87 @@
  */
 
 require __DIR__ . '/vendor/autoload.php';
-
 use UAParser\Parser;
 
 class Tasks_data_uri extends Tasks
 {
     var $meta = array(
         'name'       => 'Statamic Data URI Plugin',
-        'version'    => '1.0.2',
+        'version'    => '1.0.3',
         'author'     => 'Rudy Affandi',
         'author_url' => 'https://github.com/lesaff'
     );
 
     public function encodeDataURI($value)
     {
-        // parse the content just in case
-        $file_path   = Path::assemble(BASE_PATH, $value);
-
-        // Get file meta
-        $finfo       = finfo_open(FILEINFO_MIME_TYPE);
-        $file_mime   = finfo_file($finfo, $file_path);
-
-        // Get file size of input
-        $size        = filesize($file_path);
-        $browser     = self::getBrowserInfo();
+        // Get browser info
+        $browser     = static::getBrowserInfo();
         $browser_ver = $browser['browser_name'] . ' ' . $browser['browser_version_major'];
 
-        // Restrictions
+        // IE Restrictions
         $ie_size     = 32000;
 
-        // Create Data-URI based on browser
-        // Source: http://caniuse.com/#feat=datauri
+        /**
+         * Create Data-URI based on browser
+         * Source: http://caniuse.com/#feat=datauri
+         * If IE 7 or older, just show the original image
+         * If IE 8, limit to 32kb
+         */
 
-        // If IE 7 or older, just show the original image
-        if ($browser['browser_name'] && $browser['browser_version_major'] < 8)
-        {
-            return $value;
-        } elseif ($browser['browser_name'] && $browser['browser_version_major'] > 7)
-        // If IE 8 or newer, limit to 32kb or smaller (IE restriction)
-        {
-            if ($size <= $ie_size)
-            {
-                // Base64 it
-                $result = base64_encode(File::get($file_path));
+        // Encode data
+        $output = static::encoder($value);
 
-                // Assemble Base64 URL
-                $output = 'data:' . $file_mime . ';base64,' . $result;
-                return $output;
-            } else {
+        switch($browser_ver)
+        {
+            case 'IE 6':
+            case 'IE 7':
                 // Return original value
                 return $value;
-            }
-        } else
-        {
-            // Rest of the modern browsers
-            // Base64 it
-            $result = base64_encode(File::get($file_path));
-
-            // Assemble Base64 URL
-            $output = 'data:' . $file_mime . ';base64,' . $result;
-            return $output;
+                break;
+            case 'IE 8':
+                if ($output['size'] <= $ie_size) {
+                    return $output['url'];
+                } else {
+                    return $value;
+                }
+                break;
+            default:
+                return $output['url'];
         }
     }
 
-    public function getBrowserInfo() {
+    /**
+    * Base64 Encoder (internal or external source)
+    * @return string
+    */
+    public function encoder($value)
+    {
+        // Base64 it
+        if (static::checkExtURL($value))
+        {
+            $file_path = static::cleanURL($value);
+            $result    = base64_encode(static::getExtContent($file_path));
+        } else {
+            $file_path = Path::assemble(BASE_PATH, static::cleanURL($value));
+            $result    = base64_encode(File::get($file_path));
+        }
+
+        // Populate array
+        $data = [
+            'size' => filesize($file_path),
+            'mime' => finfo_file(finfo_open(FILEINFO_MIME_TYPE), $file_path),
+            'raw'  => $result,
+            'url'  => 'data:' . finfo_file(finfo_open(FILEINFO_MIME_TYPE), $file_path) . ';base64,' . $result
+        ];
+        return $data;
+    }
+
+    /**
+    * Browser UA detector
+    * @return string
+    */
+    public function getBrowserInfo()
+    {
         $ua = $_SERVER['HTTP_USER_AGENT'];
         $parser = Parser::create();
         $result = $parser->parse($ua);
@@ -94,5 +111,39 @@ class Tasks_data_uri extends Tasks
         );
 
         return $browser_info;
+    }
+
+    /**
+    * Check URL for external/internal
+    * @return bool
+    */
+    public function checkExtURL($url)
+    {
+        if (substr($url, 0, 4) == "http") {
+            return true;
+        }
+    }
+
+    /**
+    * Clean URL from query strings
+    * @return string
+    */
+    public function cleanURL($url)
+    {
+        return preg_replace('/\?.*/', '', $url);
+    }
+
+    /**
+    * Grab external content
+    * @return mixed
+    */
+    public function getExtContent($url)
+    {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        $data = curl_exec($ch);
+        curl_close($ch);
+        return $data;
     }
 }

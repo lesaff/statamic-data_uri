@@ -13,7 +13,7 @@ class Plugin_data_uri extends Plugin
 {
     var $meta = array(
         'name'       => 'Statamic Data URI Plugin',
-        'version'    => '1.0.2',
+        'version'    => '1.0.3',
         'author'     => 'Rudy Affandi',
         'author_url' => 'https://github.com/lesaff'
     );
