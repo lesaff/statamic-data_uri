@@ -1,0 +1,6 @@
+{
+    "name": "lesaff/datauri",
+    "require-dev": {
+        "phpspec/phpspec": "^2.3"
+    }
+}

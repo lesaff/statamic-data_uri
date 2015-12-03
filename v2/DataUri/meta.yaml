@@ -1,0 +1,6 @@
+name: Data URI
+addon_url: https://github.com/lesaff/statamic-data_uri
+version: 2.0.0
+developer: Rudy Affandi
+developer_url: https://github.com/lesaff
+description: Generate Base64 Data URI from your variable or hardcoded image path.
