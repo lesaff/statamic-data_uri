@@ -3,7 +3,7 @@
 namespace Statamic\Addons\DataUri;
 
 use Statamic\Extend\Addon;
-use Statamic\API\MagicFile as File;
+use Statamic\API\File;
 use Statamic\API\Path;
 use Intervention\Image\Image;
 
