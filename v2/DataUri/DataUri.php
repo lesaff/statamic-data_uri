@@ -2,13 +2,15 @@
 
 namespace Statamic\Addons\DataUri;
 
-use Statamic\Extend\Addon;
 use Statamic\API\File;
 use Statamic\API\Path;
 use Intervention\Image\Image;
+use Statamic\Extend\Extensible;
 
-class DataUri extends Addon
+class DataUri
 {
+    use Extensible;
+
     public function encodeDataURI($value)
     {
         // Get browser info (require Useragent addon)
