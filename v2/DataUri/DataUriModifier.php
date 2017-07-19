@@ -6,6 +6,14 @@ use Statamic\Extend\Modifier;
 
 class DataUriModifier extends Modifier
 {
+    /** @var DataUri */
+    protected $helper;
+
+    protected function init()
+    {
+        $this->helper = new DataUri();
+    }
+
     /**
      * Modify a value
      *
@@ -17,6 +25,6 @@ class DataUriModifier extends Modifier
     public function index($value, $params, $context)
     {
         // Encode to Base64
-        return $this->DataUri->encodeDataURI($value);
+        return $this->helper->encodeDataURI($value);
     }
 }

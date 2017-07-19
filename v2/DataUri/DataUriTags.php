@@ -6,12 +6,12 @@ use Statamic\Extend\Tags;
 
 class DataUriTags extends Tags
 {
-    /**
-     * Initialize any classes we'll need
-     */
-    public function init()
+    /** @var DataUri */
+    protected $helper;
+
+    protected function init()
     {
-        $this->DataUri = new DataUri;
+        $this->helper = new DataUri();
     }
 
     /**
@@ -25,6 +25,6 @@ class DataUriTags extends Tags
         $value = $this->content;
 
         // Encode to Base64
-        return $this->DataUri->encodeDataURI($value);
+        return $this->helper->encodeDataURI($value);
     }
 }
